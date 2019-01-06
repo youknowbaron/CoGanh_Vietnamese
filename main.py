@@ -1,6 +1,6 @@
 import imp
 import time
-from co_ganh import list_possible_next_position
+from co_ganh import is_chet
 
 
 # ======================================================================
@@ -68,7 +68,8 @@ def is_corner(pos):
 # "ganh" by column
 def ganh_by_column(state, move):
     (x, y) = move[1]
-    if state[x - 1][y] == state[x + 1][y] and state[x - 1][y] != state[x][y]:
+    if state[x - 1][y] != '.' and state[x - 1][y] == state[x + 1][y] and state[x - 1][y] != state[x][y]:
+        print("ganh_by_column")
         state[x - 1][y] = state[x][y]
         state[x + 1][y] = state[x][y]
     return
@@ -77,7 +78,8 @@ def ganh_by_column(state, move):
 # "ganh" by row
 def ganh_by_row(state, move):
     (x, y) = move[1]
-    if state[x][y - 1] == state[x][y + 1] and state[x][y - 1] != state[x][y]:
+    if state[x][y - 1] != '.' and state[x][y - 1] == state[x][y + 1] and state[x][y - 1] != state[x][y]:
+        print("ganh_by_row")
         state[x][y - 1] = state[x][y]
         state[x][y + 1] = state[x][y]
     return
@@ -87,11 +89,13 @@ def ganh_by_row(state, move):
 def ganh_by_cross(state, move):
     (x, y) = move[1]
     # "ganh" by cross \
-    if state[x + 1][y - 1] == state[x - 1][y + 1] and state[x + 1][y - 1] != state[x][y]:
+    if state[x + 1][y - 1] != '.' and state[x + 1][y - 1] == state[x - 1][y + 1] and state[x + 1][y - 1] != state[x][y]:
+        print("ganh by cross \\")
         state[x + 1][y - 1] = state[x][y]
         state[x - 1][y + 1] = state[x][y]
     # "ganh" by cross /
-    if state[x - 1][y - 1] == state[x + 1][y + 1] and state[x - 1][y - 1] != state[x][y]:
+    if state[x - 1][y - 1] != '.' and state[x - 1][y - 1] == state[x + 1][y + 1] and state[x - 1][y - 1] != state[x][y]:
+        print("ganh by cross /")
         state[x - 1][y - 1] = state[x][y]
         state[x + 1][y + 1] = state[x][y]
     return
@@ -116,19 +120,13 @@ def change_color_if_ganh(state, move):
     return
 
 
-# def is_chet(state, x, y):
-#     possible_positions = list_possible_next_position(state, (x, y))
-#     for pos in po
-
-
 # change color if "chet"
 def change_color_if_chet(state, move):
     (x, y) = move[1]
     for i in range(len(state)):
         for j in range(len(state[i])):
-            if state[i][j] == '.':
-                continue
-            if state[i][j] != state[x][y] and list_possible_next_position(state, (i, j)) == []:
+            if state[i][j] != '.' and state[i][j] != state[x][y] and is_chet(state, i, j):
+                print("chet ", i, j)
                 state[i][j] = state[x][y]
     return
 
@@ -146,21 +144,21 @@ def doit(move, state):
 
 # ======================================================================
 
-# Initial_Board = [
-#     ['b', 'b', 'b', 'b', 'b'], \
-#     ['b', '.', '.', '.', 'b'], \
-#     ['b', '.', '.', '.', 'r'], \
-#     ['r', '.', '.', '.', 'r'], \
-#     ['r', 'r', 'r', 'r', 'r'], \
-#     ]
-
 Initial_Board = [
     ['b', 'b', 'b', 'b', 'b'], \
     ['b', '.', '.', '.', 'b'], \
-    ['r', 'r', 'r', '.', 'r'], \
-    ['r', '.', 'b', '.', 'r'], \
+    ['b', '.', '.', '.', 'r'], \
+    ['r', '.', '.', '.', 'r'], \
     ['r', 'r', 'r', 'r', 'r'], \
     ]
+
+# Initial_Board = [
+#     ['b', '.', '.', '.', '.'], \
+#     ['r', 'b', '.', '.', '.'], \
+#     ['b', '.', '.', '.', '.'], \
+#     ['.', '.', '.', '.', '.'], \
+#     ['.', '.', '.', '.', 'b'], \
+#     ]
 
 
 # 4 : r r r r r
@@ -213,6 +211,9 @@ def play(student_a, student_b, start_state=Initial_Board):
             curr_player = b
         else:
             curr_player = a
+        #
+        # if board_num == 4:
+        #     break
 
     print("Game Over")
     if curr_player == a:
