@@ -1,5 +1,6 @@
 import imp
 import time
+from co_ganh import list_possible_next_position
 
 
 # ======================================================================
@@ -26,35 +27,13 @@ def board_copy(board):
 
 
 # ======================================================================
-
-# Student SHOULD implement this function to change current state to new state properly
-def doit(move, state):
-    new_state = board_copy(state)
-    return new_state
+CORNER_POSITION = [(0, 0), (4, 4), (0, 4), (4, 0)]
 
 
-# ======================================================================
-Initial_Board = [
-    ['b', 'b', 'b', 'b', 'b'], \
-    ['b', '.', '.', '.', 'b'], \
-    ['b', '.', '.', '.', 'r'], \
-    ['r', '.', '.', '.', 'r'], \
-    ['r', 'r', 'r', 'r', 'r'], \
-    ]
-
-
-# 4 : r r r r r
-# 3 : r . . . r
-# 2 : b . . . r
-# 1 : b . . . b
-# 0 : b b b b b
-#     0 1 2 3 4
-# ======================================================================
-
+# Check game over and return winner if true
 def game_over(state):
     r = 0
     b = 0
-
     for i in range(len(state)):
         for j in range(len(state[i])):
             if state[i][j] == 'b':
@@ -66,10 +45,131 @@ def game_over(state):
     elif b == 0:
         return 'r'
     else:
+        return 'not'
+
+
+# swap state between current position and new position
+# move[0] is current position
+# move[1] is new position
+def swap_position(state, move):
+    t = state[move[0][0]][move[0][1]]
+    state[move[0][0]][move[0][1]] = state[move[1][0]][move[1][1]]
+    state[move[1][0]][move[1][1]] = t
+
+
+# check corner position
+def is_corner(pos):
+    for corner in CORNER_POSITION:
+        if pos == corner:
+            return True
+    return False
+
+
+# "ganh" by column
+def ganh_by_column(state, move):
+    (x, y) = move[1]
+    if state[x - 1][y] == state[x + 1][y] and state[x - 1][y] != state[x][y]:
+        state[x - 1][y] = state[x][y]
+        state[x + 1][y] = state[x][y]
+    return
+
+
+# "ganh" by row
+def ganh_by_row(state, move):
+    (x, y) = move[1]
+    if state[x][y - 1] == state[x][y + 1] and state[x][y - 1] != state[x][y]:
+        state[x][y - 1] = state[x][y]
+        state[x][y + 1] = state[x][y]
+    return
+
+
+# "ganh" by cross
+def ganh_by_cross(state, move):
+    (x, y) = move[1]
+    # "ganh" by cross \
+    if state[x + 1][y - 1] == state[x - 1][y + 1] and state[x + 1][y - 1] != state[x][y]:
+        state[x + 1][y - 1] = state[x][y]
+        state[x - 1][y + 1] = state[x][y]
+    # "ganh" by cross /
+    if state[x - 1][y - 1] == state[x + 1][y + 1] and state[x - 1][y - 1] != state[x][y]:
+        state[x - 1][y - 1] = state[x][y]
+        state[x + 1][y + 1] = state[x][y]
+    return
+
+
+# change color if "ganh"
+def change_color_if_ganh(state, move):
+    if is_corner(move[1]):
         return
+    (x, y) = move[1]
+    if x == 0 or x == 4:
+        ganh_by_row(state, move)
+    elif y == 0 or y == 4:
+        ganh_by_column(state, move)
+    elif abs(x - y) == 1:
+        ganh_by_row(state, move)
+        ganh_by_column(state, move)
+    else:
+        ganh_by_column(state, move)
+        ganh_by_row(state, move)
+        ganh_by_cross(state, move)
+    return
+
+
+# def is_chet(state, x, y):
+#     possible_positions = list_possible_next_position(state, (x, y))
+#     for pos in po
+
+
+# change color if "chet"
+def change_color_if_chet(state, move):
+    (x, y) = move[1]
+    for i in range(len(state)):
+        for j in range(len(state[i])):
+            if state[i][j] == '.':
+                continue
+            if state[i][j] != state[x][y] and list_possible_next_position(state, (i, j)) == []:
+                state[i][j] = state[x][y]
+    return
+
 
 # ======================================================================
 
+# Student SHOULD implement this function to change current state to new state properly
+def doit(move, state):
+    swap_position(state, move)
+    change_color_if_ganh(state, move)
+    change_color_if_chet(state, move)
+    new_state = board_copy(state)
+    return new_state
+
+
+# ======================================================================
+
+# Initial_Board = [
+#     ['b', 'b', 'b', 'b', 'b'], \
+#     ['b', '.', '.', '.', 'b'], \
+#     ['b', '.', '.', '.', 'r'], \
+#     ['r', '.', '.', '.', 'r'], \
+#     ['r', 'r', 'r', 'r', 'r'], \
+#     ]
+
+Initial_Board = [
+    ['b', 'b', 'b', 'b', 'b'], \
+    ['b', '.', '.', '.', 'b'], \
+    ['r', 'r', 'r', '.', 'r'], \
+    ['r', '.', 'b', '.', 'r'], \
+    ['r', 'r', 'r', 'r', 'r'], \
+    ]
+
+
+# 4 : r r r r r
+# 3 : r . . . r
+# 2 : b . . . r
+# 1 : b . . . b
+# 0 : b b b b b
+#     0 1 2 3 4
+# ======================================================================
 
 def play(student_a, student_b, start_state=Initial_Board):
     player_a = imp.load_source(student_a, student_a + ".py")
