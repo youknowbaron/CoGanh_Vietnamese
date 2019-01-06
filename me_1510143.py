@@ -83,6 +83,15 @@ def board_copy(board):
 
 # ======================== Change state =======================================
 
+# swap state between current position and new position
+# move[0] is current position
+# move[1] is new position
+def swap_position(state, move):
+    t = state[move[0][0]][move[0][1]]
+    state[move[0][0]][move[0][1]] = state[move[1][0]][move[1][1]]
+    state[move[1][0]][move[1][1]] = t
+
+
 # "ganh" by column
 def ganh_by_column(state, pos):
     (x, y) = pos
@@ -233,11 +242,12 @@ def evaluate_chet(state, x, y):
     return point
 
 
-def evaluate(state, x, y):
-    point = evaluate_ganh(state, x, y)
+def evaluate(state, x_old, y_old, x_new, y_new):
     copy_board = board_copy(state)
-    change_color_if_ganh(copy_board, (x, y))
-    point += evaluate_chet(copy_board, x, y)
+    swap_position(copy_board, [(x_old, y_old), (x_new, y_new)])
+    point = evaluate_ganh(copy_board, x_new, y_new)
+    change_color_if_ganh(copy_board, (x_new, y_new))
+    point += evaluate_chet(copy_board, x_new, y_new)
     return point
 
 
@@ -250,7 +260,7 @@ def get_max_evaluate(state, x, y):
         return -1
     max_evaluation = 0
     for pos in next_positions:
-        max_evaluation = max(max_evaluation, evaluate(state, pos[0], pos[1]))
+        max_evaluation = max(max_evaluation, evaluate(state, x, y, pos[0], pos[1]))
     return max_evaluation
 
 
@@ -264,8 +274,8 @@ def get_new_position(state, x, y):
     max_position = next_positions[0]
     max_evaluation = 0
     for pos in next_positions:
-        if evaluate(state, pos[0], pos[1]) > max_evaluation:
-            max_evaluation = evaluate(state, pos[0], pos[1])
+        if evaluate(state, x, y, pos[0], pos[1]) > max_evaluation:
+            max_evaluation = evaluate(state, x, y, pos[0], pos[1])
             max_position = pos
     return max_position
 
@@ -293,19 +303,6 @@ def get_max_chessman(state, color):
             list_max_chessman.clear()
             list_max_chessman.append(chessman)
     return list_max_chessman[random.randrange(0, len(list_max_chessman))]
-
-
-# def get_max_chessman(state, color):
-#     list_chessman = get_all_chessman(state, color)
-#     if len(list_chessman) == 0:
-#         return color
-#     max_evaluate = 0
-#     max_chessman = list_chessman[0]
-#     for chessman in list_chessman:
-#         if get_max_evaluate(state, chessman[0], chessman[1]) > max_evaluate:
-#             max_evaluate = get_max_evaluate(state, chessman[0], chessman[1])
-#             max_chessman = chessman
-#     return max_chessman
 
 
 # ======================== Class Player =======================================
